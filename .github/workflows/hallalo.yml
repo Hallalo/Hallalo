@@ -1,0 +1,39 @@
+name: Build APK
+
+on:
+  push:
+    branches:
+      - main  # قم بتغييره إلى الفرع الذي ترغب في تشغيل العمل عليه
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9  # أو الإصدار الذي تستخدمه
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgl1-mesa-dev
+        pip install --upgrade pip
+        pip install buildozer
+        pip install cython
+
+    - name: Build APK
+      run: |
+        buildozer init
+        sed -i 's/# \(android\.logcat_filters\)/\1 = *:S/g' buildozer.spec
+        buildozer android debug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v2
+      with:
+        name: my-app
+        path: bin/*.apk
